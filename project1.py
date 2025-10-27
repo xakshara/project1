@@ -35,14 +35,20 @@ Measurement = Tuple[str, int, str, float]
 # We define several small “utility” functions to simplify data cleaning.
 
 def _to_int_safe(x):
-    """Convert any value to int safely, returning None if it fails."""
+    """Convert any value to int safely, returning None if it fails.
+    This helper ensures that values like ' 42 ', '042', or even numeric strings
+    from CSVs can be converted cleanly. 
+    """
     try:
         return int(str(x).strip())
     except Exception:
         return None
 
 def _to_float_safe(x):
-    """Convert any value to float safely, returning None if it fails."""
+    """Convert any value to float safely, returning None if it fails.
+    This helper behaves similarly to _to_int_safe but for floating-point values.
+    It is useful when reading numerical data from CSV files that may contain
+    missing, corrupted, or placeholder entries."""
     try:
         return float(str(x).strip())
     except Exception:
@@ -52,6 +58,11 @@ def _norm_borough(name: str) -> str:
     """
     Normalize borough names for consistent lookups.
     Example: 'manhattan' → 'Manhattan'
+        ' BROOKLYN '  -> 'Brooklyn'
+
+    This ensures that inconsistent capitalization or extra spaces in the source
+    data don't affect dictionary key matching when grouping or filtering by
+    borough name.
     """
     return str(name).strip().title()
 
@@ -96,9 +107,12 @@ def read_pollution():
 
     This double indexing makes lookups fast for both geography and time.
     """
+
+    # Initialize two lookup dictionaries: one keyed by UHF ID, one by date
     by_uhf: Dict[int, List[Measurement]] = {}
     by_date: Dict[str, List[Measurement]] = {}
 
+    # Verify that the CSV file exists before proceeding
     if not AIR_QUALITY_FILE.exists():
         print(f"Could not find {AIR_QUALITY_FILE}")
         return by_uhf, by_date
