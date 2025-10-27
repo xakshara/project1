@@ -132,6 +132,7 @@ def read_pollution():
     for row in rows[start_idx:]:
         if len(row) < 4:
             continue
+        # Extract and clean each field
         uhf_id = _to_int_safe(row[0])
         uhf_name = str(row[1]).strip()
         date_str = str(row[2]).strip()
@@ -140,8 +141,10 @@ def read_pollution():
         # Validate all fields before adding
         if uhf_id is None or not uhf_name or not date_str or value is None:
             continue
-
+        # Create the measurement tuple
         m: Measurement = (date_str, uhf_id, uhf_name, value)
+
+        # Store in both lookup dictionaries
         by_uhf.setdefault(uhf_id, []).append(m)
         by_date.setdefault(date_str, []).append(m)
 
@@ -277,7 +280,7 @@ def read_uhf():
 # ---------- Query Helpers (Part 1c) ----------
 
 def _format_measurement(m: Measurement) -> str:
-    """Format one measurement tuple into a readable string for printing."""
+    """Convert one measurement tuple into a readable string for printing."""
     d, uhf_id, uhf_name, val = m
     return f"{d} UHF {uhf_id} {uhf_name} {val:.2f} mcg/m^3"
 
@@ -316,7 +319,7 @@ def search_by_date(date_str: str, by_date) -> List[Measurement]:
 
 def main():
     """
-    Main entry point.
+    Main entry point for the program
     Loads data once at startup, then repeatedly asks user for search criteria.
     This command-line interface allows flexible exploration of the dataset.
     """
@@ -340,6 +343,7 @@ def main():
         "  q) quit\n"
     )
 
+  #Keep prompting user until they quit
     while True:
         print(menu)
         choice = input("Enter choice: ").strip().lower()
